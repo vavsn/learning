@@ -1,216 +1,272 @@
 ﻿using System;
-using System.Globalization;
+using System.IO;
+using System.Collections.Generic;
 
-namespace WorkWithMethods
+namespace Lesson5
 {
-    /// <summary>
-    /// класс для ввода правильного номера месяца : числа в диапазоне от 1 до 12
-    /// </summary>
-    class RIN
-    {
-        int min = 1;   // первый месяц года
-        int max = 12;  // последний месяц года
-        public string info = string.Empty; // параметр для формирования диагностического сообщения
-        public bool n_bool; // флаг успешного преобразования
-
-        // Ограниченное число: поле n и свойство N
-        int n;
-        public int N    // свойство
-        {
-            get { return n; } // возвращаем значение 
-            set // устанавливаем значение 
-            {
-                if (value < min) // проверяем на выход введённого значения за нижнюю границу
-                {
-                    n = min;
-                    n_bool = false;
-                }
-                else if (value > max) // проверяем на выход введённого значения за верхнюю границу
-                {
-                    n = max;
-                    n_bool = false;
-                }
-                else // возвращаем значение в указанном диапазоне
-                {
-                    n = value;
-                    n_bool = true;
-                }
-            }
-        }
-        /// <summary>
-        /// конструктор класса
-        /// </summary>
-        /// <param name="n_st"></param>
-        public RIN(string n_st)
-        {
-            n_bool = true; // возвращаем флаг, что всё прошло успешно
-            try
-            {
-                N = Convert.ToInt32(n_st); // попытка конвертации строки в число
-                if (!n_bool) // если число вне диапазона
-                {
-                    // формируем диагностическое сообщение
-                    info = $"Ошибка ввода параметра. Число {n_st} вне диапазона. Для изменения введите целое число от " + min.ToString() + " до " + max.ToString();
-                }
-            }
-            catch // ошибка конвертации: пользователь ввёл НЕ число
-            {
-                // формируем диагностическое сообщение
-                info = "Ошибка ввода параметра. Введите целое число от " + min.ToString() + " до " + max.ToString() + "."; ;
-                n_bool = false; // устанавливам флаг, что все прошло НЕ успешно
-            }
-        }
-    }   // end class RIN
     class Program
     {
-        /// <summary>
-        /// сформируем список времён года, с английскими названиями
-        /// </summary>
-        public enum Seasons
-        {
-            Winter = 1,
-            Spring = 2,
-            Summer = 3,
-            Autumn = 4
-        }
-        /// <summary>
-        /// сформируем список времён года, соответствующим английским названиям
-        /// </summary>
-        public enum rusSeasons
-        {
-            Зима = Seasons.Winter,
-            Весна = Seasons.Spring,
-            Лето = Seasons.Summer,
-            Осень = Seasons.Autumn
-        }
-        /// <summary>
-        /// метод форматирования аргументов в строку
-        /// метод принимает аргументы - фамилия, имя, отчество
-        /// возвращает ФИО в формате "Фамилия Имя Отчество"
-        /// </summary>
-        /// <param name="string firstName" имя></param>
-        /// <param name="string lastName" отчество></param>
-        /// <param name="string patronymic" фамилия></param>
-        static string GetFullName(string firstName, string lastName, string patronymic)
-        {
-            var _fn = firstName.Replace(" ", ""); // удалим возможные пробелы в имени
-            var _ln = lastName.Replace(" ", ""); // удалим возможные пробелы в отчестве
-            var _p = patronymic.Replace(" ", ""); // удалим возможные пробелы в фамилии
 
-            TextInfo ti = CultureInfo.CurrentCulture.TextInfo; // обратим внимание на региональные различия
-
-            return ti.ToTitleCase(_fn + " " + _ln + " " + _p); // выведем строку в которой все слова начинаются с заглавных символов
-        }
-        /// <summary>
-        /// метод вычисления суммы чисел, переданных в строке - аргументе
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        static string GetSumm(string args)
-        {
-            string[] _arg_str = args.Split(); // целую строку преобразуем в массив строк
-            double _sum = 0.0; // локальная переменная для хранения суммы чисел
-            foreach (var _a in _arg_str) // в цикле просуммируем введённые значения
-            {
-                IFormatProvider formatter = new NumberFormatInfo { NumberDecimalSeparator = "." }; // зафиксируем единый формат для преобразования чисел
-                try
-                {
-                    _sum += double.Parse(_a, formatter); // отформатируем и преобразуем число, затем просуммируем с сохранённым значением суммы
-                }
-                catch
-                {
-                    return $"Введённое значение {_a} не является числом. Завершаю работу."; // если в момент преобразования поймём, что введённое значение не является числом,
-                                                                                            // аварийно завершим метод с соответствующим сообщением пользователю
-                }
-            }
-
-            return _sum.ToString(); // возвращаем сумму чисел
-        }
-        /// <summary>
-        /// метод определяет время года
-        /// </summary>
-        /// <param name="Month"></param>
-        /// <returns></returns>
-        static Seasons GetSeason(int Month)
-        {
-            Seasons _m = Seasons.Winter; // определим возвращаемое по умолчанию значение 
-            switch (Month) // определим принадлежность введённого номера месяца к времени года
-            {
-                case 3:
-                case 4:
-                case 5: 
-                    _m = Seasons.Spring; // введённое значение месяца соответствует весне
-                    break;
-                case 6:
-                case 7:
-                case 8: 
-                    _m = Seasons.Summer; // введённое значение месяца соответствует лету
-                    break;
-                case 9:
-                case 10:
-                case 11: 
-                    _m = Seasons.Autumn; // введённое значение месяца соответствует осени
-                    break;
-            }
-            return _m; // возвращаем полученное значение времени года
-        }
-
-        /// <summary>
-        /// метод возвращает название времени года в соответствии с введённым пользователем номером месяца года
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        static rusSeasons GetRusSeason(int Month)
-        {
-            Seasons _s = GetSeason(Month);
-            return (rusSeasons)_s;
-        }
-        /// <summary>
-        /// основной метод
-        /// </summary>
-        /// <param name="args"></param>
         static void Main(string[] args)
         {
-            Console.WriteLine("Выполняю первое задание:");
+            HomeWork();
+            TaskStar1();
 
-            Console.WriteLine(GetFullName("Иванов", "семен", "Михайлович"));
-            Console.WriteLine(GetFullName("Григ орьева", "Галина", " петровна"));
-            Console.WriteLine(GetFullName("Рабинович", "Сам уил", "Иосифович "));
+        }
 
-            Console.WriteLine("Готово!\n");
-            Console.WriteLine("Нажмите любую кнопку...");
-            Console.ReadKey();
-            Console.Clear();
+        // основное домашнее задание
+        static void HomeWork()
+        {
+            // имя файла для работы
+            string _filename = "startup.txt";
+            // выводим приглашающую информацию на экран
+            Console.WriteLine("Введите текст:");
+            // получаем введённый пользователем текст
+            var str = Console.ReadLine();
+            // сохраним введённый текст в файл
+            File.WriteAllText(_filename, Environment.NewLine + str);
+            // выводим информационное сообщение на экран
+            Console.WriteLine($"Введённая Вами строка записана в файл {_filename}. Дополняю данными о текущем времени.");
+            // вносим дополнительные данные о времени в файл
+            File.AppendAllLines(_filename, new[] { Environment.NewLine, "Время записи информации в файл ", DateTime.Now.ToString("HH:mm:ss") });
+            // пропустим строку на экране
+            Console.WriteLine();
+            // выводим информационное сообщение на экран
+            Console.WriteLine($"Вывожу содержимое файла {_filename}:");
+            // прочитаем данные из файла
+            string[] fileLines = File.ReadAllLines(_filename);
+            // в цикле выводим содержимое файла на экран
+            foreach (var rl in fileLines)
+                Console.WriteLine(rl); // str2
 
-            Console.WriteLine("Выполняю второе задание:\n");
-            Console.WriteLine("Введите любое количество чисел. Числа должны быть разделены пробелами");
-            Console.WriteLine(GetSumm(Console.ReadLine()));
-            Console.WriteLine("Готово!\n");
-            Console.WriteLine("Нажмите любую кнопку...");
-            Console.ReadKey();
-            Console.Clear();
-            
-            Console.WriteLine("Выполняю третье задание:");
+            Console.WriteLine();
+            // выводим приглашающую информацию на экран
+            Console.WriteLine("Введите произвольное количество чисел разделённых пробелами:");
 
-            // определим начальные значения
-            var _month = 0; 
-            var n_bool = false;
-            do
+            // получаем введённый пользователем текст
+            str = Console.ReadLine();
+            // разделим строку на подстроки, которые запишем в массив
+            string[] num = str.Split(" ");
+            // создадим массив байт
+            byte[] arr_num = new byte[num.Length];
+            // преобразуем строки в байты и сохраним их в массив
+            int i = 0;
+            foreach (var n in num)
+                arr_num[i++] = byte.Parse(n);
+            // зададим название файла
+            _filename = "startup.bin";
+            // выведём информационное сообщение
+            Console.WriteLine($"Сохраняю введённую информацию в файл {_filename}");
+            // запишем массив байт в файл
+            File.WriteAllBytes(_filename, arr_num);
+            // выведём информационное сообщение
+            Console.WriteLine($"Вывожу содержимое файла {_filename}");
+            // считаем данные из файла
+            byte[] fromFile = File.ReadAllBytes(_filename);
+            // выведем содержимое файла в окно
+            foreach (var ff in fromFile)
+                Console.Write(ff.ToString() + " ");
+
+            Console.WriteLine();
+
+            Console.WriteLine("Надеюсь, информация совпадает :)");
+
+        }
+
+        // решение задачи 4*
+        static void TaskStar1()
+        {
+            // получим информацию о текущей папке, в которой запускается программа
+            string _curpath = Directory.GetCurrentDirectory();
+            // задаем имя файла для вывода информации с помощью рекурсивного метода
+            string _filename = _curpath + @"\directories_recursion.info";
+            // зададим название папки для работы программы
+            string testPath = @"D:\Обучение c#";
+            // выведём информационное сообщение
+            Console.WriteLine($"Получение информации о содержимом папки \"{testPath}\"");
+            Console.WriteLine($"Применяем рекурсивный метод.");
+            // получим информацию о директории в специализированном виде
+            DirectoryInfo _testpath = new System.IO.DirectoryInfo(testPath);
+            // проверим наличие директории поиска
+            bool exists = Directory.Exists(testPath);
+            // подготовим информационное сообщение в файл для случая, когда директория найдена, и для случая, когда директория отсутствует
+            string notes = exists ? $"Директория \"{testPath}\" существует. Записываю данные:" : $"Директория \"{testPath}\" НЕ существует. Записывать нечего.";
+            // запишем информационное сообщение в файл
+            File.WriteAllText(_filename, notes + Environment.NewLine);
+            // если директория отсутствует - завершим работу программы, выведем соответствующее сообщение на экран
+            if (!exists)
             {
-                Console.WriteLine("Введите номер месяца года:");
-                RIN k = new RIN(Console.ReadLine()); // определим, соответствует ли введённая пользователем строка правилам: число в диапазоне от 1 до 12
-                _month = k.N; // сохраним введённое число для дальнейего использования
-                n_bool = k.n_bool; // сохраним флаг успешности ввода
-                if (!n_bool) // если введённая строка не соблюдает правила...
-                {
-                    Console.WriteLine(k.info); // ... выведем соответствующее диагностическое сообщение
-                }
+                Console.WriteLine(notes);
+                return;
             }
-            while (!n_bool); // будем повторять ввод, пока не будет введёно число от 1 до 12
-            // определим время года и выведем на экран
-            Console.WriteLine("Введёный номер месяца года " + _month.ToString() + " соответствует времени года: " + GetRusSeason(_month));
 
-            Console.WriteLine("\nГотово!");
+            // вызовём рекурсиную функцию
+            SearchFileInfo(_testpath, _filename);
+
+            // выведём информационное сообщение
+            Console.WriteLine($"Завершено. Полученная информация записана в файл \"{_filename}\"");
+            Console.WriteLine($"Применяем метод прямого перебора.");
+
+            // задаем имя файла для вывода информации без помощи рекурсивного метода
+            _filename = _curpath + @"\directories_direct.info";
+
+            // запишем информационное сообщение в файл
+            File.WriteAllText(_filename, notes + Environment.NewLine);
+            // вызовем функцию для формирования списка файлов / директорий в директивном порядке
+            WalkingDirectoryDirect(_testpath.FullName, _filename);
+
+            // выведём информационное сообщение
+            Console.WriteLine($"Завершено. Полученная информация записана в файл \"{_filename}\"");
+
+        }
+
+        static void SearchFileInfo(DirectoryInfo path, string _filename)
+        {
+            // переменная для хранения информации о файлах
+            FileInfo[] files = null;
+            // переменная для хранения информации о директориях
+            DirectoryInfo[] subDirs = null;
+
+            // защищаемся от возможных исключительных ситуаций
+            try
+            {
+                // получим информацию о файлах в директории / поддиректории
+                files = path.GetFiles("*.*");
+            }
+            // обработка исключений
+            catch (UnauthorizedAccessException e)
+            {
+                // запишем информационное сообщение в файл
+                File.AppendAllLines(_filename, new[] { e.Message });
+            }
+
+            // в цикле запишем в файл информацию о каждом найденном файле 
+            foreach (FileInfo fi in files)
+            {
+                File.AppendAllLines(_filename, new[] { fi.FullName });
+            }
+
+            // защищаемся от возможных исключительных ситуаций
+            try
+            {
+                // получим информацию по поддиректориям.
+                subDirs = path.GetDirectories();
+            }
+            // обработка исключений
+            catch (UnauthorizedAccessException e)
+            {
+                // запишем информационное сообщение в файл
+                File.AppendAllLines(_filename, new[] { e.Message });
+            }
+
+            foreach (DirectoryInfo dirInfo in subDirs)
+            {
+                // в цикле запишем в файл информацию о каждой найденной поддиректории
+                File.AppendAllLines(_filename, new[] { dirInfo.FullName });
+                // вызываем рекурсивно для каждой поддиректории
+                SearchFileInfo(dirInfo, _filename);
+            }
+        }
+
+
+        public static void WalkingDirectoryDirect(string path, string _filename)
+        {
+            // локальная переменная для формирования списка поддиректорий
+            var curDirFile = path;
+
+            // стэк для хранения информации о поддиректориях
+            Stack<string> folders = new Stack<string>(20);
+
+            // получаем информацию о поддиректориях основной директории 
+            folders.Push(path);
+
+            // работаем с каждой поддиректорией
+            while (folders.Count > 0)
+            {
+                // получаем наименование верхней запии в стэке
+                string currentDir = folders.Pop();
+                // создаем пустой массив для хранения информации о поддиректориях
+                string[] subDirs;
+                // защищаемся от возможных исключительных ситуаций
+                try
+                {
+                    // получаем информацию о поддиректориях текущей рабочей директории
+                    subDirs = Directory.GetDirectories(currentDir);
+                }
+                // обработка исключения отсутствия доступа к поддиректории
+                catch (UnauthorizedAccessException e)
+                {
+                    // запишем информационное сообщение в файл
+                    File.AppendAllLines(_filename, new[] { e.Message });
+                    // переходим к следующему элементу массива
+                    continue;
+                }
+                // обработка исключения об отсутствии поддиректории
+                catch (DirectoryNotFoundException e)
+                {
+                    // запишем информационное сообщение в файл
+                    File.AppendAllLines(_filename, new[] { e.Message });
+                    // переходим к следующему элементу массива
+                    continue;
+                }
+                // создаем массив для хранения информации о файлах в поддиректории
+                string[] files = null;
+                // защищаемся от возможных исключительных ситуаций
+                try
+                {
+                    // получаем информацию о файлах в текущей поддиректории
+                    files = Directory.GetFiles(currentDir);
+                }
+
+                // обработка исключения отсутствия доступа к файлу
+                catch (UnauthorizedAccessException e)
+                {
+                    // запишем информационное сообщение в файл
+                    File.AppendAllLines(_filename, new[] { e.Message });
+                    // переходим к следующему элементу массива
+                    continue;
+                }
+                // обработка исключения об отсутствии файла
+                catch (DirectoryNotFoundException e)
+                {
+                    // запишем информационное сообщение в файл
+                    File.AppendAllLines(_filename, new[] { e.Message });
+                    // переходим к следующему элементу массива
+                    continue;
+                }
+                // получаем информацию о файлах
+                foreach (string file in files)
+                {
+                    // защищаемся от возможных исключительных ситуаций
+                    try
+                    {
+                        // создаем переменную, в которую система складывает информацию о файле
+                        FileInfo fi = new FileInfo(file);
+                        // сравниваем сохраненное имя поддиректории с поддиректорией, в которой хранится файл
+                        if (curDirFile != fi.Directory.FullName)
+                        {
+                            // запишем в файл информацию о поддиректории, в которой хранится файл
+                            File.AppendAllLines(_filename, new[] { fi.Directory.FullName });
+                            // если имена не совпадают, сохраняем новое имя поддиректории
+                            curDirFile = fi.Directory.FullName;
+                        }
+                        // запишем информационное сообщение в файл
+                        File.AppendAllLines(_filename, new[] { fi.FullName });
+                    }
+                    // обработка исключения об отсутствии файла
+                    catch (FileNotFoundException e)
+                    {
+                        // запишем информационное сообщение в файл
+                        File.AppendAllLines(_filename, new[] { e.Message });
+                        // переходим к следующему элементу массива
+                        continue;
+                    }
+                }
+
+                // сбрасываем информацию о поддиректориях на диск
+                foreach (string str in subDirs)
+                    folders.Push(str);
+            }
         }
     }
 }
