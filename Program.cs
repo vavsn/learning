@@ -1,272 +1,197 @@
 ﻿using System;
-using System.IO;
-using System.Collections.Generic;
+using System.Diagnostics;
 
-namespace Lesson5
+namespace TaskManager
 {
-    class Program
+    /// <summary>
+    /// класс для хранения и вывода на экран информации по процессам
+    /// </summary>
+    class TaskMan: Process
     {
-
-        static void Main(string[] args)
+        public string name = string.Empty; // имя процесса для завершения
+        public string info = string.Empty; // информационная строка для ввода на экран
+        public bool kill = false; // признак того, что переданный процесс необходимо завершить
+        public int ID = -1; // номер процесса для завершения
+        Process[] lAll; // список всех процессов в системе
+        public Process[] localAll // список всех процессов в системе
         {
-            HomeWork();
-            TaskStar1();
-
+            get { return lAll; } // возвращаем сохранённый список всех процессов в системе
+            set { lAll = value; } // сохраняем в приватном параметре список всех процессов в системе
         }
-
-        // основное домашнее задание
-        static void HomeWork()
+        /// <summary>
+        /// конструктор для случая, когда ни одного параметра не задано
+        /// получаем список всех процессов в системе
+        /// </summary>
+        public TaskMan()
         {
-            // имя файла для работы
-            string _filename = "startup.txt";
-            // выводим приглашающую информацию на экран
-            Console.WriteLine("Введите текст:");
-            // получаем введённый пользователем текст
-            var str = Console.ReadLine();
-            // сохраним введённый текст в файл
-            File.WriteAllText(_filename, Environment.NewLine + str);
-            // выводим информационное сообщение на экран
-            Console.WriteLine($"Введённая Вами строка записана в файл {_filename}. Дополняю данными о текущем времени.");
-            // вносим дополнительные данные о времени в файл
-            File.AppendAllLines(_filename, new[] { Environment.NewLine, "Время записи информации в файл ", DateTime.Now.ToString("HH:mm:ss") });
-            // пропустим строку на экране
-            Console.WriteLine();
-            // выводим информационное сообщение на экран
-            Console.WriteLine($"Вывожу содержимое файла {_filename}:");
-            // прочитаем данные из файла
-            string[] fileLines = File.ReadAllLines(_filename);
-            // в цикле выводим содержимое файла на экран
-            foreach (var rl in fileLines)
-                Console.WriteLine(rl); // str2
-
-            Console.WriteLine();
-            // выводим приглашающую информацию на экран
-            Console.WriteLine("Введите произвольное количество чисел разделённых пробелами:");
-
-            // получаем введённый пользователем текст
-            str = Console.ReadLine();
-            // разделим строку на подстроки, которые запишем в массив
-            string[] num = str.Split(" ");
-            // создадим массив байт
-            byte[] arr_num = new byte[num.Length];
-            // преобразуем строки в байты и сохраним их в массив
-            int i = 0;
-            foreach (var n in num)
-                arr_num[i++] = byte.Parse(n);
-            // зададим название файла
-            _filename = "startup.bin";
-            // выведём информационное сообщение
-            Console.WriteLine($"Сохраняю введённую информацию в файл {_filename}");
-            // запишем массив байт в файл
-            File.WriteAllBytes(_filename, arr_num);
-            // выведём информационное сообщение
-            Console.WriteLine($"Вывожу содержимое файла {_filename}");
-            // считаем данные из файла
-            byte[] fromFile = File.ReadAllBytes(_filename);
-            // выведем содержимое файла в окно
-            foreach (var ff in fromFile)
-                Console.Write(ff.ToString() + " ");
-
-            Console.WriteLine();
-
-            Console.WriteLine("Надеюсь, информация совпадает :)");
-
-        }
-
-        // решение задачи 4*
-        static void TaskStar1()
-        {
-            // получим информацию о текущей папке, в которой запускается программа
-            string _curpath = Directory.GetCurrentDirectory();
-            // задаем имя файла для вывода информации с помощью рекурсивного метода
-            string _filename = _curpath + @"\directories_recursion.info";
-            // зададим название папки для работы программы
-            string testPath = @"D:\Обучение c#";
-            // выведём информационное сообщение
-            Console.WriteLine($"Получение информации о содержимом папки \"{testPath}\"");
-            Console.WriteLine($"Применяем рекурсивный метод.");
-            // получим информацию о директории в специализированном виде
-            DirectoryInfo _testpath = new System.IO.DirectoryInfo(testPath);
-            // проверим наличие директории поиска
-            bool exists = Directory.Exists(testPath);
-            // подготовим информационное сообщение в файл для случая, когда директория найдена, и для случая, когда директория отсутствует
-            string notes = exists ? $"Директория \"{testPath}\" существует. Записываю данные:" : $"Директория \"{testPath}\" НЕ существует. Записывать нечего.";
-            // запишем информационное сообщение в файл
-            File.WriteAllText(_filename, notes + Environment.NewLine);
-            // если директория отсутствует - завершим работу программы, выведем соответствующее сообщение на экран
-            if (!exists)
+            try
             {
-                Console.WriteLine(notes);
+                localAll = Process.GetProcesses(); // получаем и сохраняем список всех процессов в системе
+                info = "Вывожу список всех процессов в системе"; // формируем информационное сообщение
+            }
+            catch (Exception ex) // обработка исключений
+            {
+                Console.WriteLine(ex.ToString()); // выводим на экран системное сообщение
+            }
+        }
+
+        /// <summary>
+        /// конструктор для случая, когда задан 1 параметр: либо ID процесса, либо имя процесса
+        /// </summary>
+        /// <param name="_name"></param>
+        public TaskMan(string _name)
+        {
+            if (int.TryParse(_name, out ID)) // проверка: переданный параметр - число? если да, значит надо найти информацию по процессу с переданным кодом
+            {
+                try // на случай, если информация по процессу не будет найдена
+                {
+                    Process _p = Process.GetProcessById(ID); // получаем информацию по процессу с определённым кодом
+                    info = "Вывожу информацию о процессе с ID = " + ID; // формируем информационное сообщение
+                    name = Process.GetProcessById(ID).ProcessName; // получаем название этого процесса
+                    if (localAll != null) // проверяем, есть или нет информация в локальном списке процессов? ...
+                    {
+                        Array.Clear(localAll, 0, localAll.Length); // ...если есть, обнуляем список
+                        localAll[0] = Process.GetProcessById(ID); // добавляем информацию по найденному процессу
+                    }
+                    else
+                    {
+                        localAll = new Process[] { _p }; // создаём список и добавляем информацию по найденному процессу
+                    }
+                }
+                catch (Exception ex) // обработка исключений
+                {
+                    Console.WriteLine(ex.ToString()); // выводим на экран системное сообщение
+                }
+            }
+            else
+            {
+                name = _name; // сохраняем наименование процесса
+                info = "Вывожу информацию о всех процессах с именем = " + name; // формируем информационное сообщение
+                ID = -1; // кода процесса нет, т.к. процессов с указанным названием может быть много
+                try
+                {
+                    localAll = Process.GetProcessesByName(name); // получаем список процессов с указанным названием 
+                }
+                catch (Exception ex) // обработка исключений
+                {
+                    Console.WriteLine(ex.ToString()); // выводим на экран системное сообщение
+                }
+            }
+        }
+        /// <summary>
+        /// метод вывода на экран информации о процессах
+        /// </summary>
+        private void WriteConsole()
+        {
+            Console.WriteLine(info); // вывод на экран сформированного информационного сообщения
+
+            Console.WriteLine("ID:    Name of Process"); // выводим на экран заголок
+            int i = 1;
+
+            foreach (var la in localAll) // выводим информацию в цикле
+            {
+                Console.WriteLine(string.Format("{0,6} {1}", la.Id, la.ProcessName)); // форматируем информацию для вывода на экран кода и названия процесса / процессов
+                if (i % 23 == 0) // если список большой, логично показывать его кусками. 25 - количество строк в строковом представлении экрана компьютера,
+                                 // поэтому выводим 23 строки информации + 2 строки информационного характера
+                {
+                    Console.WriteLine("----- ПРОДОЛЖИТЬ - НАЖАТЬ ЛЮБУЮ КЛАВИШУ -----"); // выводим на экран информационное сообщение
+                    Console.WriteLine("----- ЗАКОНЧИТЬ - НАЖАТЬ КЛАВИШУ \"Q\" -----"); // выводим на экран информационное сообщение
+                    ConsoleKeyInfo _c = Console.ReadKey(true);
+                    if (_c.Key == ConsoleKey.Q)
+                        break;
+                }
+                i++;
+            }
+        }
+        /// <summary>
+        /// метод выполнения каких-то действий с объектом
+        /// </summary>
+        public void DoIt()
+        {
+            if (kill) // если пользователь дал команду на завершение процесса...
+            {
+                if (localAll == null) // проверка, что список не пустой
+                    return;
+                string _name = name; // ... сохраним название процесса, для итогового информационного сообщения
+                int _id = ID; // ... сохраним код процесса, для итогового информационного сообщения
+                foreach (var lP in localAll) // удаление проводим в цикле. в случае, когда пользователь указывает название процесса, самих процессов может быть много. их надо завершить все.
+                {
+                    try
+                    {
+                        lP.Kill(); // пробуем удалить процесс в "жестком" режиме.
+                    }
+                    catch (Exception ex) // обработка исключений
+                    {
+                        Console.WriteLine(ex.ToString()); // выводим на экран системное сообщение
+                        break; // прерываем выполнение текущего шага цикла
+                    }
+                }
+                if (_id == -1) // признак того, что в программу передано название процесса
+                    info = "Удалены процессы с именем = " + _name; // формируем информационное сообщение 
+                else // признак того, что в программу передан код процесса.
+                    info = "Удален процесс с ID = " + _id; // формируем информационное сообщение
                 return;
             }
 
-            // вызовём рекурсиную функцию
-            SearchFileInfo(_testpath, _filename);
-
-            // выведём информационное сообщение
-            Console.WriteLine($"Завершено. Полученная информация записана в файл \"{_filename}\"");
-            Console.WriteLine($"Применяем метод прямого перебора.");
-
-            // задаем имя файла для вывода информации без помощи рекурсивного метода
-            _filename = _curpath + @"\directories_direct.info";
-
-            // запишем информационное сообщение в файл
-            File.WriteAllText(_filename, notes + Environment.NewLine);
-            // вызовем функцию для формирования списка файлов / директорий в директивном порядке
-            WalkingDirectoryDirect(_testpath.FullName, _filename);
-
-            // выведём информационное сообщение
-            Console.WriteLine($"Завершено. Полученная информация записана в файл \"{_filename}\"");
-
+            WriteConsole(); // вызываем метод вывода информации на экран
         }
+    }
 
-        static void SearchFileInfo(DirectoryInfo path, string _filename)
+    class Program
+    {
+        /// <summary>
+        /// основной метод
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        static int Main(string[] args)
         {
-            // переменная для хранения информации о файлах
-            FileInfo[] files = null;
-            // переменная для хранения информации о директориях
-            DirectoryInfo[] subDirs = null;
+            Console.WriteLine("Приступаю к выполнению задания"); // выводим на экран информационное сообщение
 
-            // защищаемся от возможных исключительных ситуаций
-            try
-            {
-                // получим информацию о файлах в директории / поддиректории
-                files = path.GetFiles("*.*");
-            }
-            // обработка исключений
-            catch (UnauthorizedAccessException e)
-            {
-                // запишем информационное сообщение в файл
-                File.AppendAllLines(_filename, new[] { e.Message });
-            }
+            TaskMan TM = null; // создаем пустой объект нужного типа, чтобы не зависеть от областей видимости переменных
 
-            // в цикле запишем в файл информацию о каждом найденном файле 
-            foreach (FileInfo fi in files)
-            {
-                File.AppendAllLines(_filename, new[] { fi.FullName });
-            }
-
-            // защищаемся от возможных исключительных ситуаций
-            try
-            {
-                // получим информацию по поддиректориям.
-                subDirs = path.GetDirectories();
-            }
-            // обработка исключений
-            catch (UnauthorizedAccessException e)
-            {
-                // запишем информационное сообщение в файл
-                File.AppendAllLines(_filename, new[] { e.Message });
-            }
-
-            foreach (DirectoryInfo dirInfo in subDirs)
-            {
-                // в цикле запишем в файл информацию о каждой найденной поддиректории
-                File.AppendAllLines(_filename, new[] { dirInfo.FullName });
-                // вызываем рекурсивно для каждой поддиректории
-                SearchFileInfo(dirInfo, _filename);
-            }
-        }
-
-
-        public static void WalkingDirectoryDirect(string path, string _filename)
-        {
-            // локальная переменная для формирования списка поддиректорий
-            var curDirFile = path;
-
-            // стэк для хранения информации о поддиректориях
-            Stack<string> folders = new Stack<string>(20);
-
-            // получаем информацию о поддиректориях основной директории 
-            folders.Push(path);
-
-            // работаем с каждой поддиректорией
-            while (folders.Count > 0)
-            {
-                // получаем наименование верхней запии в стэке
-                string currentDir = folders.Pop();
-                // создаем пустой массив для хранения информации о поддиректориях
-                string[] subDirs;
-                // защищаемся от возможных исключительных ситуаций
-                try
-                {
-                    // получаем информацию о поддиректориях текущей рабочей директории
-                    subDirs = Directory.GetDirectories(currentDir);
-                }
-                // обработка исключения отсутствия доступа к поддиректории
-                catch (UnauthorizedAccessException e)
-                {
-                    // запишем информационное сообщение в файл
-                    File.AppendAllLines(_filename, new[] { e.Message });
-                    // переходим к следующему элементу массива
-                    continue;
-                }
-                // обработка исключения об отсутствии поддиректории
-                catch (DirectoryNotFoundException e)
-                {
-                    // запишем информационное сообщение в файл
-                    File.AppendAllLines(_filename, new[] { e.Message });
-                    // переходим к следующему элементу массива
-                    continue;
-                }
-                // создаем массив для хранения информации о файлах в поддиректории
-                string[] files = null;
-                // защищаемся от возможных исключительных ситуаций
-                try
-                {
-                    // получаем информацию о файлах в текущей поддиректории
-                    files = Directory.GetFiles(currentDir);
-                }
-
-                // обработка исключения отсутствия доступа к файлу
-                catch (UnauthorizedAccessException e)
-                {
-                    // запишем информационное сообщение в файл
-                    File.AppendAllLines(_filename, new[] { e.Message });
-                    // переходим к следующему элементу массива
-                    continue;
-                }
-                // обработка исключения об отсутствии файла
-                catch (DirectoryNotFoundException e)
-                {
-                    // запишем информационное сообщение в файл
-                    File.AppendAllLines(_filename, new[] { e.Message });
-                    // переходим к следующему элементу массива
-                    continue;
-                }
-                // получаем информацию о файлах
-                foreach (string file in files)
-                {
-                    // защищаемся от возможных исключительных ситуаций
-                    try
+            switch (args.Length) // анализируем количество переданных аргументов
+            { 
+                case 0: // пользователь не указал аргументы
+                    TM = new TaskMan(); // заполняем объект информацией о всех процессах в системе
+                    TM.kill = false; // признак того, что пользователь не даёт команду на завершение процесса
+                    TM.DoIt(); // выполняем действия с объектом
+                    break;
+                case 1: // пользователь указал 1 аргумент: либо код процесса, либо название процесса
+                    TM = new TaskMan(args[0]); // заполняем объект информацией в зависимости от значения аргумента
+                    TM.kill = false; // признак того, что пользователь не даёт команду на завершение процесса
+                    TM.DoIt(); // выполняем действия с объектом
+                    break;
+                case 2:
+                    if (args[0] == "KILL" | args[0] == "K") // пользователь даёт команду на завершение процесса, 2 аргумент - код или название процесса
                     {
-                        // создаем переменную, в которую система складывает информацию о файле
-                        FileInfo fi = new FileInfo(file);
-                        // сравниваем сохраненное имя поддиректории с поддиректорией, в которой хранится файл
-                        if (curDirFile != fi.Directory.FullName)
+                        TM = new TaskMan(args[1]); // заполняем объект информацией в зависимости от значения 2 аргумента
+                        TM.kill = true; // признак того, что пользователь даёт команду на завершение процесса
+                        TM.DoIt(); // выполняем действия с объектом
+                        break;
+                    }
+                    if (args[0] == "START" | args[0] == "S") // пользователь даёт команду на старт процесса, 2 аргумент - название программы
+                    {
+                        try
                         {
-                            // запишем в файл информацию о поддиректории, в которой хранится файл
-                            File.AppendAllLines(_filename, new[] { fi.Directory.FullName });
-                            // если имена не совпадают, сохраняем новое имя поддиректории
-                            curDirFile = fi.Directory.FullName;
+                            Process notepad = Process.Start(args[1]); // запускаем процес
+                            Console.WriteLine($"Запущен процесс {notepad.ProcessName}. Его ID {notepad.Id}."); // выводим на экран информационное сообщение
                         }
-                        // запишем информационное сообщение в файл
-                        File.AppendAllLines(_filename, new[] { fi.FullName });
+                        catch (Exception ex) // обработка исключений
+                        {
+                            Console.WriteLine(ex.ToString()); // выводим на экран системное сообщение
+                        }
+                        break;
                     }
-                    // обработка исключения об отсутствии файла
-                    catch (FileNotFoundException e)
-                    {
-                        // запишем информационное сообщение в файл
-                        File.AppendAllLines(_filename, new[] { e.Message });
-                        // переходим к следующему элементу массива
-                        continue;
-                    }
-                }
-
-                // сбрасываем информацию о поддиректориях на диск
-                foreach (string str in subDirs)
-                    folders.Push(str);
+                    Console.WriteLine($"Введен неверный первый аргумент {args[1]}. Ознакомьтесь с файлом READ.ME"); // выводим на экран информационное сообщение
+                    break;
+                default:
+                    Console.WriteLine("Превышено количество аргументов."); // выводим на экран информационное сообщение
+                    break;
             }
+
+            Console.WriteLine("\nВыполнение задания завершено"); // выводим на экран информационное сообщение
+            return 0; // возвращаем в систему код успешного завершения программы
         }
     }
 }
